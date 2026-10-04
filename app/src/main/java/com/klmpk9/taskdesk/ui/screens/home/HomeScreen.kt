@@ -269,7 +269,7 @@ private fun EmptyState(onCreateClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Daftar antrean desain masih kosong.\\nBuat tiket pertama kamu untuk memulai.",
+                text = "Daftar antrean desain masih kosong.\nBuat tiket pertama kamu untuk memulai.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
