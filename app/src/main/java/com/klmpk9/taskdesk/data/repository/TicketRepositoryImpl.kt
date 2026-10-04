@@ -3,6 +3,7 @@ package com.klmpk9.taskdesk.data.repository
 import com.klmpk9.taskdesk.data.remote.api.TicketApi
 import com.klmpk9.taskdesk.data.remote.dto.TicketDto
 import com.klmpk9.taskdesk.data.remote.dto.TicketRequest
+import com.klmpk9.taskdesk.util.DeviceIdentityManager
 import com.klmpk9.taskdesk.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -11,17 +12,21 @@ import java.io.IOException
 import javax.inject.Inject
 
 class TicketRepoImpl @Inject constructor(
-    private val api: TicketApi
+    private val api: TicketApi,
+    private val identityManager: DeviceIdentityManager
 ) : TicketRepository {
 
-    override fun getTickets(): Flow<Resource<List<TicketDto>>> = flow {
+    override fun getMyTickets(): Flow<Resource<List<TicketDto>>> = flow {
         emit(Resource.Loading)
         try {
-            val response = api.getTickets()
+            val requesterId = identityManager.getRequesterId()
+            val response = api.getTickets(requesterId)
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    emit(Resource.Success(body))
+                    // Sort by createdAt descending (terbaru di atas)
+                    val sorted = body.sortedByDescending { it.createdAt }
+                    emit(Resource.Success(sorted))
                 } else {
                     emit(Resource.Error("Response body kosong"))
                 }
@@ -33,7 +38,7 @@ class TicketRepoImpl @Inject constructor(
         } catch (e: HttpException) {
             emit(Resource.Error("HTTP ${e.code()}: ${e.message()}", e))
         } catch (e: Exception) {
-            emit(Resource.Error("Unexpected error", e))
+            emit(Resource.Error("Terjadi kesalahan tak terduga", e))
         }
     }
 
@@ -56,7 +61,7 @@ class TicketRepoImpl @Inject constructor(
         } catch (e: HttpException) {
             emit(Resource.Error("HTTP ${e.code()}: ${e.message()}", e))
         } catch (e: Exception) {
-            emit(Resource.Error("Unexpected error", e))
+            emit(Resource.Error("Terjadi kesalahan tak terduga", e))
         }
     }
 
@@ -66,6 +71,9 @@ class TicketRepoImpl @Inject constructor(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
+                    // Simpan nama & departemen untuk auto-fill berikutnya
+                    identityManager.saveName(request.requesterName)
+                    identityManager.saveDepartment(request.department)
                     Resource.Success(body)
                 } else {
                     Resource.Error("Response body kosong")
@@ -78,7 +86,7 @@ class TicketRepoImpl @Inject constructor(
         } catch (e: HttpException) {
             Resource.Error("HTTP ${e.code()}: ${e.message()}", e)
         } catch (e: Exception) {
-            Resource.Error("Unexpected error", e)
+            Resource.Error("Terjadi kesalahan tak terduga", e)
         }
     }
 }
