@@ -16,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.klmpk9.taskdesk.ui.screens.create.CreateScreen
 import com.klmpk9.taskdesk.ui.screens.home.HomeScreen
 
 @Composable
@@ -38,8 +39,7 @@ fun AppNavHost(
 
         // === CREATE SCREEN (Tahap 6) ===
         composable<Create> {
-            // Placeholder — akan diganti dengan CreateScreen(navController)
-            PlaceholderScreen(name = "Create")
+            CreateScreen(navController = navController)
         }
 
         // === DETAIL SCREEN (Tahap 7) ===
