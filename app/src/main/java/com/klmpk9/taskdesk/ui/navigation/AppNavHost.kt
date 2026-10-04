@@ -16,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.klmpk9.taskdesk.ui.screens.home.HomeScreen
 
 @Composable
 fun AppNavHost(
@@ -28,24 +29,11 @@ fun AppNavHost(
         modifier = modifier
     ) {
 
-        // === HOME SCREEN (Tahap 5) ===
+        // === HOME SCREEN ===
         composable<Home> {
-            // Placeholder — akan diganti dengan HomeScreen(navController)
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Home")
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { navController.navigate(Create) }) {
-                    Text("Go to Create")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { navController.navigate(Detail(ticketId = "TEST-001")) }) {
-                    Text("Go to Detail")
-                }
-            }
+            HomeScreen(
+                navController = navController
+            )
         }
 
         // === CREATE SCREEN (Tahap 6) ===

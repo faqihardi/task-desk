@@ -1,5 +1,6 @@
 package com.klmpk9.taskdesk.di
 
+import com.klmpk9.taskdesk.data.mock.MockTicketApi
 import com.klmpk9.taskdesk.data.remote.api.TicketApi
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -58,6 +59,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideTicketApi(retrofit: Retrofit): TicketApi {
-        return retrofit.create(TicketApi::class.java)
+        return MockTicketApi()
+//        return retrofit.create(TicketApi::class.java)
     }
 }
