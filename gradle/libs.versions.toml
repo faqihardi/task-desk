@@ -17,8 +17,10 @@ moshi = "1.15.1"
 navigationCompose = "2.9.3"
 kotlinxSerializationJson = "1.8.0"
 coroutines = "1.10.2"
+securityCrypto = "1.1.0-alpha06"
 
 [libraries]
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

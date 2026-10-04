@@ -7,8 +7,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface TicketRepository {
 
-
-    fun getTickets(): Flow<Resource<List<TicketDto>>>
+    /**
+     * Ambil daftar tiket milik user ini (filter by requesterId).
+     */
+    fun getMyTickets(): Flow<Resource<List<TicketDto>>>
 
     fun getTicketById(id: String): Flow<Resource<TicketDto>>
 

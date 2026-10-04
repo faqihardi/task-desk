@@ -6,9 +6,15 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class TicketDto(
     @Json(name = "id") val id: String,
+    @Json(name = "ticketCode") val ticketCode: String,
     @Json(name = "title") val title: String,
     @Json(name = "brief") val brief: String,
     @Json(name = "driveLink") val driveLink: String?,
-    @Json(name = "status") val status: String, // "Pending", "In Progress", "Done"
+    @Json(name = "status") val status: String,
+    @Json(name = "priority") val priority: String,
+    @Json(name = "department") val department: String,
+    @Json(name = "requesterId") val requesterId: String,
+    @Json(name = "requesterName") val requesterName: String,
+    @Json(name = "assignee") val assignee: String?,
     @Json(name = "createdAt") val createdAt: Long
 )
