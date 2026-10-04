@@ -14,32 +14,33 @@ import retrofit2.Response
  */
 class MockTicketApi : TicketApi {
 
-    private val mockTickets = mutableListOf(
-        TicketDto(
-            id = "1",
-            title = "Redesign Landing Page Medkominfo",
-            brief = "Perlu redesign halaman utama dengan fokus pada UX yang lebih intuitif dan mobile-first approach.",
-            driveLink = null,
-            status = "in_progress",
-            createdAt = System.currentTimeMillis() - 86400000 // 1 hari lalu
-        ),
-        TicketDto(
-            id = "2",
-            title = "Buat Poster Event Campus Expo",
-            brief = "Poster untuk event tahunan dengan tema 'Innovation for Future'.",
-            driveLink = null,
-            status = "pending",
-            createdAt = System.currentTimeMillis() - 172800000 // 2 hari lalu
-        ),
-        TicketDto(
-            id = "3",
-            title = "Video Profil Organisasi",
-            brief = "Video 2-3 menit yang menampilkan kegiatan dan pencapaian organisasi.",
-            driveLink = "https://drive.google.com/example",
-            status = "done",
-            createdAt = System.currentTimeMillis() - 259200000 // 3 hari lalu
-        )
-    )
+    private val mockTickets = mutableListOf<TicketDto>()
+//    private val mockTickets = mutableListOf(
+//        TicketDto(
+//            id = "1",
+//            title = "Redesign Landing Page Medkominfo",
+//            brief = "Perlu redesign halaman utama dengan fokus pada UX yang lebih intuitif dan mobile-first approach.",
+//            driveLink = null,
+//            status = "in_progress",
+//            createdAt = System.currentTimeMillis() - 86400000 // 1 hari lalu
+//        ),
+//        TicketDto(
+//            id = "2",
+//            title = "Buat Poster Event Campus Expo",
+//            brief = "Poster untuk event tahunan dengan tema 'Innovation for Future'.",
+//            driveLink = null,
+//            status = "pending",
+//            createdAt = System.currentTimeMillis() - 172800000 // 2 hari lalu
+//        ),
+//        TicketDto(
+//            id = "3",
+//            title = "Video Profil Organisasi",
+//            brief = "Video 2-3 menit yang menampilkan kegiatan dan pencapaian organisasi.",
+//            driveLink = "https://drive.google.com/example",
+//            status = "done",
+//            createdAt = System.currentTimeMillis() - 259200000 // 3 hari lalu
+//        )
+//    )
 
     override suspend fun getTickets(): Response<List<TicketDto>> {
         delay(1500) // Simulasi network delay

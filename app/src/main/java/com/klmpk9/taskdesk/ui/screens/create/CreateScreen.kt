@@ -1,5 +1,6 @@
 package com.klmpk9.taskdesk.ui.screens.create
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,6 +44,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.klmpk9.taskdesk.ui.components.ConfirmDialog
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 /**
  * Create Screen - Form pengajuan tiket desain baru.
@@ -62,18 +69,50 @@ fun CreateScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Focus requesters untuk navigasi keyboard antar field
+    // Focus requesters
     val titleFocusRequester = remember { FocusRequester() }
     val briefFocusRequester = remember { FocusRequester() }
     val driveLinkFocusRequester = remember { FocusRequester() }
+
+
+    // State untuk dialog unsaved changes
+    var showUnsavedChangesDialog by remember { mutableStateOf(false) }
+
+    // Deteksi apakah ada perubahan yang belum disimpan
+    val hasUnsavedChanges = uiState.title.isNotBlank() ||
+            uiState.brief.isNotBlank() ||
+            uiState.driveLink.isNotBlank()
+
+    // === Intercept system back button ===
+    BackHandler (enabled = hasUnsavedChanges && !uiState.isSubmitSuccess) {
+        showUnsavedChangesDialog = true
+    }
+
+    // === Dialog konfirmasi unsaved changes ===
+    if (showUnsavedChangesDialog) {
+        ConfirmDialog(
+            title = "Perubahan Belum Disimpan",
+            message = "Data yang kamu masukkan akan hilang jika keluar dari halaman ini. Yakin ingin keluar?",
+            confirmText = "Keluar",
+            dismissText = "Tetap di Sini",
+            onConfirm = {
+                showUnsavedChangesDialog = false
+                navController.popBackStack()
+            },
+            onDismiss = {
+                showUnsavedChangesDialog = false
+            }
+        )
+    }
 
     // === Auto navigate back setelah submit sukses ===
     LaunchedEffect(uiState.isSubmitSuccess) {
         if (uiState.isSubmitSuccess) {
             // Signal HomeScreen untuk refresh daftar tiket
-            navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.set("refreshTickets", true)
+            navController.previousBackStackEntry?.savedStateHandle?.apply {
+                set("refreshTickets", true)
+                set("snackbarMessage", "Tiket berhasil dibuat ✓")
+            }
 
             // Navigate back ke HomeScreen
             navController.popBackStack()
@@ -100,10 +139,21 @@ fun CreateScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(
+                        onClick = {
+                            if (hasUnsavedChanges) {
+                                showUnsavedChangesDialog = true
+                            } else {
+                                navController.popBackStack()
+                            }
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Kembali"
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali"
+                            contentDescription = null
                         )
                     }
                 },
@@ -120,7 +170,7 @@ fun CreateScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .imePadding() // Adjust saat keyboard muncul
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -130,14 +180,15 @@ fun CreateScreen(
             OutlinedTextField(
                 value = uiState.title,
                 onValueChange = { viewModel.onTitleChange(it) },
-                label = { Text("Judul Tiket *") },
+                label = { Text("Judul Tiket") },
                 placeholder = { Text("Contoh: Redesign Landing Page") },
                 supportingText = { Text("Judul singkat untuk tiket desain") },
                 singleLine = true,
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(titleFocusRequester),
+                    .focusRequester(titleFocusRequester)
+                    .semantics { contentDescription = "Judul tiket, wajib diisi" },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -151,7 +202,7 @@ fun CreateScreen(
             OutlinedTextField(
                 value = uiState.brief,
                 onValueChange = { viewModel.onBriefChange(it) },
-                label = { Text("Brief / Deskripsi *") },
+                label = { Text("Brief / Deskripsi") },
                 placeholder = { Text("Jelaskan spesifikasi dan kebutuhan desain...") },
                 supportingText = { Text("Detail ukuran, warna, referensi, dll.") },
                 minLines = 4,
@@ -159,7 +210,8 @@ fun CreateScreen(
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(briefFocusRequester),
+                    .focusRequester(briefFocusRequester)
+                    .semantics { contentDescription = "Brief atau deskripsi desain, wajib diisi" },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -180,7 +232,8 @@ fun CreateScreen(
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(driveLinkFocusRequester),
+                    .focusRequester(driveLinkFocusRequester)
+                    .semantics { contentDescription = "Link Google Drive, opsional" },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
                     imeAction = ImeAction.Done
@@ -201,6 +254,7 @@ fun CreateScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
+                    .semantics { contentDescription = "Kirim tiket baru" }
             ) {
                 if (uiState.isSubmitting) {
                     CircularProgressIndicator(

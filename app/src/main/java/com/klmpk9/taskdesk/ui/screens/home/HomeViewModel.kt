@@ -27,6 +27,14 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    // === Pull-to-Refresh State ===
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    // Error saat refresh (untuk snackbar)
+    private val _refreshError = MutableStateFlow<String?>(null)
+    val refreshError: StateFlow<String?> = _refreshError.asStateFlow()
+
     init {
         loadTickets()
     }
@@ -40,10 +48,10 @@ class HomeViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         val tickets = resource.data
-                        if (tickets.isEmpty()) {
-                            _uiState.value = UiState.Empty
+                        _uiState.value = if (tickets.isEmpty()) {
+                            UiState.Empty
                         } else {
-                            _uiState.value = UiState.Success(tickets)
+                            UiState.Success(tickets)
                         }
                     }
                     is Resource.Error -> {
@@ -57,9 +65,45 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
+     * Pull-to-refresh.
+     */
+    fun refresh() {
+        _isRefreshing.value = true
+        repository.getTickets()
+            .onEach { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        // Nothing
+                    }
+                    is Resource.Success -> {
+                        val tickets = resource.data
+                        _uiState.value = if (tickets.isEmpty()) {
+                            UiState.Empty
+                        } else {
+                            UiState.Success(tickets)
+                        }
+                        _isRefreshing.value = false
+                    }
+                    is Resource.Error -> {
+                        _refreshError.value = resource.message ?: "Gagal memuat data"
+                        _isRefreshing.value = false
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    /**
      * Retry function jika error
      */
     fun retry() {
         loadTickets()
+    }
+
+    /**
+     * Clear refresh error di snackbar.
+     */
+    fun clearRefreshError() {
+        _refreshError.value = null
     }
 }

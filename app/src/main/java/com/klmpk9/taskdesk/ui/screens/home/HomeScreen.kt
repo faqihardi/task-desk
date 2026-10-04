@@ -24,19 +24,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.klmpk9.taskdesk.data.remote.dto.TicketDto
 import com.klmpk9.taskdesk.ui.components.TicketCard
 import com.klmpk9.taskdesk.ui.navigation.Create
@@ -52,37 +59,66 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val refreshError by viewModel.refreshError.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // === AUTO-REFRESH setelah kembali dari CreateScreen ===
-    val currentBackStackEntry = navController.currentBackStackEntry
+
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
     LaunchedEffect(currentBackStackEntry) {
-        currentBackStackEntry?.savedStateHandle
-            ?.getStateFlow<Boolean>("refreshTickets", false)
-            ?.collect { shouldRefresh ->
+        val entry = currentBackStackEntry ?: return@LaunchedEffect
+        entry.savedStateHandle
+            .getStateFlow<Boolean>("refreshTickets", false)
+            .collect { shouldRefresh ->
                 if (shouldRefresh) {
                     viewModel.retry()
-                    currentBackStackEntry.savedStateHandle["refreshTickets"] = false
+                    entry.savedStateHandle["refreshTickets"] = false
                 }
             }
     }
-    // === END AUTO-REFRESH ===
+
+    // Snackbar: "Sukses create" dari CreateScreen
+    LaunchedEffect(currentBackStackEntry) {
+        val entry = currentBackStackEntry ?: return@LaunchedEffect
+        entry.savedStateHandle
+            .getStateFlow<String?>("snackbarMessage", null)
+            .collect { message ->
+                if (message != null) {
+                    snackbarHostState.showSnackbar(message)
+                    entry.savedStateHandle["snackbarMessage"] = null
+                }
+            }
+    }
+
+    // Snackbar: error saat pull-to-refresh gagal
+    LaunchedEffect(refreshError) {
+        refreshError?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearRefreshError()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "TaskDesk",
+                        text = "Task Desk",
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 actions = {
                     // Tombol refresh manual
-                    IconButton(onClick = { viewModel.retry() }) {
+                    IconButton(
+                        onClick = { viewModel.retry() },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Refreshh"
+                        }
+                        ) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
-                            contentDescription = "Refresh"
+                            contentDescription = null
                         )
                     }
                 },
@@ -92,23 +128,28 @@ fun HomeScreen(
                 )
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Navigasi ke Create Screen
                     navController.navigate(Create)
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.semantics {
+                    contentDescription = "Buat tiket baru"
+                }
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Buat Tiket Baru"
+                    contentDescription = null
                 )
             }
         }
     ) { paddingValues ->
-        Box(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -118,7 +159,7 @@ fun HomeScreen(
                     LoadingState()
                 }
                 is HomeViewModel.UiState.Empty -> {
-                    EmptyState()
+                    EmptyState(onCreateClick = { navController.navigate(Create) })
                 }
                 is HomeViewModel.UiState.Error -> {
                     ErrorState(
@@ -130,7 +171,6 @@ fun HomeScreen(
                     TicketList(
                         tickets = state.tickets,
                         onTicketClick = { ticketId ->
-                            // Navigasi ke Detail Screen dengan ticketId
                             navController.navigate(Detail(ticketId = ticketId))
                         }
                     )
@@ -155,7 +195,7 @@ private fun TicketList(
     ) {
         items(
             items = tickets,
-            key = { ticket -> ticket.id } // Penting untuk animasi & state preservation
+            key = { ticket -> ticket.id }
         ) { ticket ->
             TicketCard(
                 title = ticket.title,
@@ -199,7 +239,7 @@ private fun LoadingState() {
  * Component Empty state
  */
 @Composable
-private fun EmptyState() {
+private fun EmptyState(onCreateClick: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -209,12 +249,18 @@ private fun EmptyState() {
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(32.dp)
         ) {
-            Icon(
-                imageVector = Icons.Filled.Inbox,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
+            Box(
+                modifier = Modifier.size(120.dp)
+                    .semantics {contentDescription = "Tidak ada tiket"},
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Inbox,
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Belum ada tiket",
@@ -223,11 +269,23 @@ private fun EmptyState() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Tekan tombol + untuk membuat tiket baru",
+                text = "Daftar antrean desain masih kosong.\\nBuat tiket pertama kamu untuk memulai.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(onClick = onCreateClick) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text("Buat Tiket Pertama")
+            }
         }
     }
 }
