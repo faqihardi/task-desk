@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.klmpk9.taskdesk.ui.screens.home.HomeScreen
+import com.klmpk9.taskdesk.ui.screens.detail.DetailScreen
 
 @Composable
 fun AppNavHost(
@@ -47,8 +48,10 @@ fun AppNavHost(
             val detailRoute = backStackEntry.toRoute<Detail>()
             val ticketId = detailRoute.ticketId
 
-            // Placeholder — akan diganti dengan DetailScreen(ticketId, navController)
-            PlaceholderScreen(name = "Detail\nID: $ticketId")
+            DetailScreen(
+                ticketId = ticketId,
+                navController = navController
+            )
         }
     }
 }
