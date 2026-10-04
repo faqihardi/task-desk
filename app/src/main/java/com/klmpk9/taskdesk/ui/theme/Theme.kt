@@ -13,33 +13,79 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF8AB4F8),
-    onPrimary = Color(0xFF062E6F),
-    primaryContainer = Color(0xFF0842A0),
-    onPrimaryContainer = Color(0xFFD3E3FD),
-    secondary = Color(0xFF9AA0A6),
-    onSecondary = Color(0xFF202124),
-    surface = Color(0xFF1F1F1F),
-    onSurface = Color(0xFFE8EAED),
-    background = Color(0xFF1F1F1F),
-    onBackground = Color(0xFFE8EAED),
-    error = Color(0xFFF28B82),
-    onError = Color(0xFF601410)
+    // Primary
+    primary = PrimaryDark,
+    onPrimary = OnPrimaryDark,
+    primaryContainer = PrimaryContainerDark,
+    onPrimaryContainer = OnPrimaryContainerDark,
+
+    // Secondary
+    secondary = SecondaryDark,
+    onSecondary = OnSecondaryDark,
+    secondaryContainer = SecondaryContainerDark,
+    onSecondaryContainer = OnSecondaryContainerDark,
+
+    // Tertiary
+    tertiary = TertiaryDark,
+    onTertiary = OnTertiaryDark,
+    tertiaryContainer = TertiaryContainerDark,
+    onTertiaryContainer = OnTertiaryContainerDark,
+
+    // Error
+    error = ErrorDark,
+    onError = OnErrorDark,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark,
+
+    // Surface & Background
+    surface = SurfaceDark,
+    onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceVariantDark,
+    onSurfaceVariant = OnSurfaceVariantDark,
+    background = BackgroundDark,
+    onBackground = OnBackgroundDark,
+
+    // Outline
+    outline = OutlineDark,
+    outlineVariant = OutlineVariantDark
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1A73E8),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFD3E3FD),
-    onPrimaryContainer = Color(0xFF041E49),
-    secondary = Color(0xFF5F6368),
-    onSecondary = Color.White,
-    surface = Color(0xFFFFFBFE),
-    onSurface = Color(0xFF1F1F1F),
-    background = Color(0xFFFFFBFE),
-    onBackground = Color(0xFF1F1F1F),
-    error = Color(0xFFDC362E),
-    onError = Color.White
+    // Primary
+    primary = PrimaryLight,
+    onPrimary = OnPrimaryLight,
+    primaryContainer = PrimaryContainerLight,
+    onPrimaryContainer = OnPrimaryContainerLight,
+
+    // Secondary
+    secondary = SecondaryLight,
+    onSecondary = OnSecondaryLight,
+    secondaryContainer = SecondaryContainerLight,
+    onSecondaryContainer = OnSecondaryContainerLight,
+
+    // Tertiary
+    tertiary = TertiaryLight,
+    onTertiary = OnTertiaryLight,
+    tertiaryContainer = TertiaryContainerLight,
+    onTertiaryContainer = OnTertiaryContainerLight,
+
+    // Error
+    error = ErrorLight,
+    onError = OnErrorLight,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnErrorContainerLight,
+
+    // Surface & Background
+    surface = SurfaceLight,
+    onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceVariantLight,
+    onSurfaceVariant = OnSurfaceVariantLight,
+    background = BackgroundLight,
+    onBackground = OnBackgroundLight,
+
+    // Outline
+    outline = OutlineLight,
+    outlineVariant = OutlineVariantLight
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -56,7 +102,7 @@ private val LightColorScheme = lightColorScheme(
 fun TaskDeskTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
