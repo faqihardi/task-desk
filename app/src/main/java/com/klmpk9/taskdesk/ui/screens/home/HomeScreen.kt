@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,18 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Refresh daftar setelah CreateScreen berhasil mengirim tiket
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(savedStateHandle) {
+        if (savedStateHandle == null) return@LaunchedEffect
+        savedStateHandle.getStateFlow("refreshTickets", false).collect { shouldRefresh ->
+            if (shouldRefresh) {
+                viewModel.retry()
+                savedStateHandle["refreshTickets"] = false
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
