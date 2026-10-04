@@ -53,17 +53,20 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Refresh daftar setelah CreateScreen berhasil mengirim tiket
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(savedStateHandle) {
-        if (savedStateHandle == null) return@LaunchedEffect
-        savedStateHandle.getStateFlow("refreshTickets", false).collect { shouldRefresh ->
-            if (shouldRefresh) {
-                viewModel.retry()
-                savedStateHandle["refreshTickets"] = false
+    // === AUTO-REFRESH setelah kembali dari CreateScreen ===
+    val currentBackStackEntry = navController.currentBackStackEntry
+
+    LaunchedEffect(currentBackStackEntry) {
+        currentBackStackEntry?.savedStateHandle
+            ?.getStateFlow<Boolean>("refreshTickets", false)
+            ?.collect { shouldRefresh ->
+                if (shouldRefresh) {
+                    viewModel.retry()
+                    currentBackStackEntry.savedStateHandle["refreshTickets"] = false
+                }
             }
-        }
     }
+    // === END AUTO-REFRESH ===
 
     Scaffold(
         topBar = {
