@@ -2,7 +2,6 @@ package com.klmpk9.taskdesk.di
 
 import com.klmpk9.taskdesk.data.remote.api.TicketApi
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,7 +33,7 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30,TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
@@ -43,7 +42,6 @@ object NetworkModule {
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder()
-            .addLast(KotlinJsonAdapterFactory())
             .build()
     }
 

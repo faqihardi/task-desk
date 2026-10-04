@@ -1,6 +1,7 @@
 package com.klmpk9.taskdesk.data.remote.api
 
 import com.klmpk9.taskdesk.data.remote.dto.TicketDto
+import com.klmpk9.taskdesk.data.remote.dto.TicketRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -14,7 +15,7 @@ interface TicketApi {
 
     @POST("tickets")
     suspend fun createTicket(
-        @Body request: TicketDto
+        @Body request: TicketRequest
     ): Response<TicketDto>
 
     @GET("tickets/{id}")
