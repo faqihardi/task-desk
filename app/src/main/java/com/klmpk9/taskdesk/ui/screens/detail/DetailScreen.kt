@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.WatchLater
 import androidx.compose.material3.Button
@@ -55,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.klmpk9.taskdesk.ui.components.StatusBadge
 import com.klmpk9.taskdesk.ui.components.TicketStatus
+import com.klmpk9.taskdesk.util.isMockApiPresent
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -208,6 +210,13 @@ fun DetailScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+
+                        // === Section: Balasan IT Helpdesk ===
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
+                        AdminReplySection(reply = ticket.adminReply)
 
                         // === Section: Link Referensi (jika ada) ===
                         if (!ticket.driveLink.isNullOrBlank()) {
@@ -495,5 +504,58 @@ private fun getPriorityColor(priority: String): Color {
         "medium" -> Color(0xFFFF9800)
         "high" -> Color(0xFFF44336)
         else -> Color(0xFF9E9E9E)
+    }
+}
+
+/**
+ * Menampilkan balasan dari IT Helpdesk.
+ * Jika belum ada balasan asli, tampilkan pesan penunggu yang halus.
+ */
+@Composable
+private fun AdminReplySection(reply: String?) {
+    SectionLabel("Balasan IT Helpdesk")
+    Spacer(modifier = Modifier.height(4.dp))
+
+    if (!reply.isNullOrBlank() && reply.isMockApiPresent("adminReply")) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.QuestionAnswer,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "IT Helpdesk",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = reply,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+        }
+    } else {
+        Text(
+            text = "Belum ada balasan dari IT Helpdesk.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

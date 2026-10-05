@@ -16,5 +16,6 @@ data class TicketDto(
     @Json(name = "requesterId") val requesterId: String,
     @Json(name = "requesterName") val requesterName: String,
     @Json(name = "assignee") val assignee: String?,
+    @Json(name = "adminReply") val adminReply: String? = null,
     @Json(name = "createdAt") val createdAt: Long
 )

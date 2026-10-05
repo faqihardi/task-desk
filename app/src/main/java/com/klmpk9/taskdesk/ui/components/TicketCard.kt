@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.klmpk9.taskdesk.util.isMockApiPresent
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -48,6 +50,7 @@ fun TicketCard(
     ticketCode: String,
     requesterName: String,
     priority: String,
+    adminReply: String? = null,
     createdAtTimestamp: Long,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,7 +83,21 @@ fun TicketCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                PriorityIndicator(priority = priority, color = priorityColor)
+                // ✅ BARU: ikon balasan + prioritas
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (adminReply.isMockApiPresent("adminReply")) {
+                        Icon(
+                            imageVector = Icons.Filled.QuestionAnswer,
+                            contentDescription = "Ada balasan dari IT Helpdesk",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                    PriorityIndicator(priority = priority, color = priorityColor)
+                }
+
+//                PriorityIndicator(priority = priority, color = priorityColor)
             }
 
             Spacer(modifier = Modifier.height(8.dp))

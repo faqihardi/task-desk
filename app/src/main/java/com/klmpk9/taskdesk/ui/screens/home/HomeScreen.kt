@@ -239,6 +239,7 @@ private fun TicketList(
                 ticketCode = ticket.ticketCode,
                 requesterName = ticket.requesterName,
                 priority = ticket.priority,
+                adminReply = ticket.adminReply,
                 createdAtTimestamp = ticket.createdAt,
                 onClick = { onTicketClick(ticket.id) }
             )
