@@ -254,7 +254,7 @@ fun DetailScreen(
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "Google Drive",
+                                            text = "Tautan Pendukung",
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.primary
                                         )
@@ -379,7 +379,7 @@ fun DetailScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Buka Link Drive")
+                                Text("Buka Tautan")
                             }
                         }
 

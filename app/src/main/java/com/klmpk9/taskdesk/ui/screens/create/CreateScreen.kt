@@ -189,9 +189,8 @@ fun CreateScreen(
             OutlinedTextField(
                 value = uiState.requesterName,
                 onValueChange = { viewModel.onNameChange(it) },
-                label = { Text("Nama Kamu") },
-                placeholder = { Text("Masukkan nama lengkap") },
-                supportingText = { Text("Akan ditampilkan di tiket") },
+                label = { Text("Nama") },
+                placeholder = { Text("Masukkan nama Anda") },
                 singleLine = true,
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier
@@ -212,8 +211,8 @@ fun CreateScreen(
                 value = uiState.title,
                 onValueChange = { viewModel.onTitleChange(it) },
                 label = { Text("Judul Tiket") },
-                placeholder = { Text("Contoh: Redesign Landing Page") },
-                supportingText = { Text("Judul singkat untuk tiket desain") },
+                placeholder = { Text("Contoh: Komputer Rusak") },
+                supportingText = { Text("Judul singkat untuk problem Anda") },
                 singleLine = true,
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier
@@ -319,8 +318,7 @@ fun CreateScreen(
                 value = uiState.brief,
                 onValueChange = { viewModel.onBriefChange(it) },
                 label = { Text("Brief / Deskripsi") },
-                placeholder = { Text("Jelaskan spesifikasi dan kebutuhan desain...") },
-                supportingText = { Text("Detail ukuran, warna, referensi, dll.") },
+                placeholder = { Text("Jelaskan spesifikasi dan kebutuhan Anda...") },
                 minLines = 4,
                 maxLines = 6,
                 enabled = !uiState.isSubmitting,
@@ -341,15 +339,15 @@ fun CreateScreen(
             OutlinedTextField(
                 value = uiState.driveLink,
                 onValueChange = { viewModel.onDriveLinkChange(it) },
-                label = { Text("Link Google Drive (Opsional)") },
+                label = { Text("Tautan Pendukung (Opsional)") },
                 placeholder = { Text("https://drive.google.com/...") },
-                supportingText = { Text("Tautan referensi atau file pendukung") },
+                supportingText = { Text("Tautan referensi atau pendukung") },
                 singleLine = true,
                 enabled = !uiState.isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(driveLinkFocusRequester)
-                    .semantics { contentDescription = "Link Google Drive, opsional" },
+                    .semantics { contentDescription = "Link Pendukung, opsional" },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
                     imeAction = ImeAction.Done
