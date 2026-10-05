@@ -1,9 +1,11 @@
 package com.klmpk9.taskdesk.ui.screens.home
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +56,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.klmpk9.taskdesk.data.remote.dto.TicketDto
 import com.klmpk9.taskdesk.ui.components.TicketCard
+import com.klmpk9.taskdesk.ui.components.TicketStatus
 import com.klmpk9.taskdesk.ui.navigation.Create
 import com.klmpk9.taskdesk.ui.navigation.Detail
 
@@ -69,6 +74,7 @@ fun HomeScreen(
     val refreshError by viewModel.refreshError.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val statusFilter by viewModel.statusFilter.collectAsStateWithLifecycle()
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -164,6 +170,11 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
+            StatusFilterRow(
+                selected = statusFilter,
+                onSelect = viewModel::onStatusFilterChange
+            )
+
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
                 onRefresh = { viewModel.refresh() },
@@ -186,9 +197,9 @@ fun HomeScreen(
                     }
 
                     is HomeViewModel.UiState.Success -> {
-                        val filtered = viewModel.filterTickets(state.tickets, searchQuery)
+                        val filtered = viewModel.filterTickets(state.tickets, searchQuery, statusFilter)
                         if (filtered.isEmpty()) {
-                            NoSearchResultState(query = searchQuery)
+                            NoSearchResultState(query = searchQuery, status = statusFilter)
                         } else {
                             TicketList(
                                 tickets = filtered,
@@ -400,7 +411,7 @@ private fun SearchField(
 }
 
 @Composable
-private fun NoSearchResultState(query: String) {
+private fun NoSearchResultState(query: String, status: TicketStatus?) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -417,13 +428,17 @@ private fun NoSearchResultState(query: String) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Tidak ada hasil",
+                text = if (query.isNotBlank()) "Tidak ada hasil" else "Belum ada tiket",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Tidak ditemukan tiket untuk \"$query\"",
+                text = if (query.isNotBlank()) {
+                    "Tidak ditemukan tiket untuk \"$query\""
+                } else {
+                    "Belum ada tiket berstatus ${status?.displayName ?: ""}"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -431,3 +446,35 @@ private fun NoSearchResultState(query: String) {
         }
     }
 }
+
+@Composable
+private fun StatusFilterRow(
+    selected: TicketStatus?,
+    onSelect: (TicketStatus?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row (
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Tab "Semua"
+        FilterChip(
+            selected = selected == null,
+            onClick = { onSelect(null) },
+            label = { Text("Semua") }
+        )
+
+        // Tab per status
+        TicketStatus.entries.forEach { status ->
+            FilterChip(
+                selected = selected == status,
+                onClick = { onSelect(status) },
+                label = { Text(status.displayName) }
+            )
+        }
+    }
+}
+

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.klmpk9.taskdesk.data.remote.dto.TicketDto
 import com.klmpk9.taskdesk.data.repository.TicketRepository
+import com.klmpk9.taskdesk.ui.components.TicketStatus
 import com.klmpk9.taskdesk.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +42,14 @@ class HomeViewModel @Inject constructor(
 
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
+    }
+
+    // === Status Filter State ===
+    private val _statusFilter = MutableStateFlow<TicketStatus?>(null)  // null = Semua
+    val statusFilter: StateFlow<TicketStatus?> = _statusFilter.asStateFlow()
+
+    fun onStatusFilterChange(status: TicketStatus?) {
+        _statusFilter.value = status
     }
 
     init {
@@ -104,13 +113,22 @@ class HomeViewModel @Inject constructor(
     /**
      * filtering
      */
-    fun filterTickets(tickets: List<TicketDto>, query: String): List<TicketDto> {
-        if (query.isBlank()) return tickets
-        return tickets.filter {
-            it.title.contains(query, ignoreCase = true) ||
-                    it.ticketCode.contains(query, ignoreCase = true) ||
-                    it.brief.contains(query, ignoreCase = true) ||
-                    it.requesterName.contains(query, ignoreCase = true)
+    fun filterTickets(
+        tickets: List<TicketDto>,
+        query: String,
+        status: TicketStatus?
+    ): List<TicketDto> {
+        return tickets.filter { ticket ->
+            val matchesQuery = query.isBlank() ||
+                    ticket.title.contains(query, ignoreCase = true) ||
+                    ticket.ticketCode.contains(query, ignoreCase = true) ||
+                    ticket.brief.contains(query, ignoreCase = true) ||
+                    ticket.requesterName.contains(query, ignoreCase = true)
+
+            val matchesStatus = status == null ||
+                    TicketStatus.fromString(ticket.status) == status
+
+            matchesQuery && matchesStatus
         }
     }
 

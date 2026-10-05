@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.WatchLater
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -286,10 +287,14 @@ fun DetailScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Column {
+//                                InfoRow(label = "Ditugaskan kepada", value = ticket.assignee)
+                                Row (
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     Text(
                                         text = "Ditugaskan kepada",
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
@@ -301,12 +306,21 @@ fun DetailScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                         } else {
-                            Text(
-                                text = "Belum ditugaskan ke siapapun",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Filled.Person,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Belum ditugaskan",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
                         }
 
                         // === Section: Informasi ===
@@ -319,10 +333,24 @@ fun DetailScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         // Row: Tanggal dibuat
-                        InfoRow(
-                            label = "Dibuat",
-                            value = formatDate(ticket.createdAt)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.WatchLater,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+//                                InfoRow(label = "Ditugaskan kepada", value = ticket.assignee)
+                            InfoRow(
+                                label = "Dibuat",
+                                value = formatDate(ticket.createdAt)
+                            )
+                        }
+//                        InfoRow(
+//                            label = "Dibuat",
+//                            value = formatDate(ticket.createdAt)
+//                        )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
