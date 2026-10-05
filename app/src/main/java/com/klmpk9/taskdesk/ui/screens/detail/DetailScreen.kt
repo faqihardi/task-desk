@@ -276,7 +276,7 @@ fun DetailScreen(
                         SectionLabel("Status Tiket")
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // Assignee (read-only, diisi IT Helpdesk)
+                        // Assignee (read-only)
                         if (!ticket.assignee.isNullOrBlank()) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
@@ -325,12 +325,6 @@ fun DetailScreen(
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
-
-                        // Row: ID Tiket
-                        InfoRow(
-                            label = "ID Tiket",
-                            value = "#${ticket.requesterId}"
-                        )
 
                         // === Tombol Buka Link Drive (jika ada) ===
                         if (!ticket.driveLink.isNullOrBlank()) {

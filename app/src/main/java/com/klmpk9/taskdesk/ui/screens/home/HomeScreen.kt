@@ -6,16 +6,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +28,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -62,7 +68,7 @@ fun HomeScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val refreshError by viewModel.refreshError.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -147,33 +153,51 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = { viewModel.refresh() },
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when (val state = uiState) {
-                is HomeViewModel.UiState.Loading -> {
-                    LoadingState()
-                }
-                is HomeViewModel.UiState.Empty -> {
-                    EmptyState(onCreateClick = { navController.navigate(Create) })
-                }
-                is HomeViewModel.UiState.Error -> {
-                    ErrorState(
-                        message = state.message,
-                        onRetry = { viewModel.retry() }
-                    )
-                }
-                is HomeViewModel.UiState.Success -> {
-                    TicketList(
-                        tickets = state.tickets,
-                        onTicketClick = { ticketId ->
-                            navController.navigate(Detail(ticketId = ticketId))
+            SearchField(
+                query = searchQuery,
+                onQueryChange = viewModel::onSearchQueryChange,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.refresh() },
+                modifier = Modifier.weight(1f)
+            ) {
+                when (val state = uiState) {
+                    is HomeViewModel.UiState.Loading -> {
+                        LoadingState()
+                    }
+
+                    is HomeViewModel.UiState.Empty -> {
+                        EmptyState(onCreateClick = { navController.navigate(Create) })
+                    }
+
+                    is HomeViewModel.UiState.Error -> {
+                        ErrorState(
+                            message = state.message,
+                            onRetry = { viewModel.retry() }
+                        )
+                    }
+
+                    is HomeViewModel.UiState.Success -> {
+                        val filtered = viewModel.filterTickets(state.tickets, searchQuery)
+                        if (filtered.isEmpty()) {
+                            NoSearchResultState(query = searchQuery)
+                        } else {
+                            TicketList(
+                                tickets = filtered,
+                                onTicketClick = { ticketId ->
+                                    navController.navigate(Detail(ticketId = ticketId))
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }
@@ -339,6 +363,71 @@ private fun ErrorState(
                 Spacer(modifier = Modifier.size(8.dp))
                 Text("Coba Lagi")
             }
+        }
+    }
+}
+
+@Composable
+private fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text("Cari judul, kode, atau nama...") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = "Cari tiket"
+            )
+        },
+        trailingIcon = {
+            if (query.isNotBlank()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Hapus pencarian"
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@Composable
+private fun NoSearchResultState(query: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.SearchOff,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Tidak ada hasil",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Tidak ditemukan tiket untuk \"$query\"",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

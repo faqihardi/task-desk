@@ -31,9 +31,17 @@ class HomeViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    // Error saat refresh (untuk snackbar)
+    // Error saat refresh (snackbar)
     private val _refreshError = MutableStateFlow<String?>(null)
     val refreshError: StateFlow<String?> = _refreshError.asStateFlow()
+
+    //    Search Query
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
 
     init {
         loadTickets()
@@ -91,6 +99,19 @@ class HomeViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    /**
+     * filtering
+     */
+    fun filterTickets(tickets: List<TicketDto>, query: String): List<TicketDto> {
+        if (query.isBlank()) return tickets
+        return tickets.filter {
+            it.title.contains(query, ignoreCase = true) ||
+                    it.ticketCode.contains(query, ignoreCase = true) ||
+                    it.brief.contains(query, ignoreCase = true) ||
+                    it.requesterName.contains(query, ignoreCase = true)
+        }
     }
 
     /**
