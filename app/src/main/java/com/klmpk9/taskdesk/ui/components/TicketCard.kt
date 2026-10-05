@@ -83,7 +83,7 @@ fun TicketCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                // ✅ BARU: ikon balasan + prioritas
+                // ikon balasan + prioritas
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (adminReply.isMockApiPresent("adminReply")) {
                         Icon(
