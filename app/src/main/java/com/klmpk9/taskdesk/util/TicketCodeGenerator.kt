@@ -11,12 +11,7 @@ import kotlin.random.Random
  * Format: TD-[DEPT_CODE]-[YYYYMMDD]-[3-digit random]
  * Contoh: TD-IT-20260105-847
  *         TD-MAR-20260105-123
- *         TD-HR-20260105-555
  *
- * Kode ini:
- * - Unik per tiket (kombinasi dept + tanggal + random)
- * - Mudah dibaca & diketik oleh IT Helpdesk
- * - Mengandung informasi departemen untuk filtering
  */
 object TicketCodeGenerator {
 

@@ -51,10 +51,16 @@ class MockTicketApi : TicketApi {
         delay(1000)
         val newTicket = TicketDto(
             id = (mockTickets.size + 1).toString(),
+            ticketCode = request.ticketCode,
             title = request.title,
             brief = request.brief,
             driveLink = request.driveLink,
             status = "pending",
+            priority = request.priority,
+            department = request.department,
+            requesterId = request.requesterId,
+            requesterName = request.requesterName,
+            assignee = null,
             createdAt = System.currentTimeMillis()
         )
         mockTickets.add(0, newTicket)

@@ -37,6 +37,13 @@ class DetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    //    Pull refresh
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _refreshError = MutableStateFlow<String?>(null)
+    val refreshError: StateFlow<String?> = _refreshError.asStateFlow()
+
     init {
         loadTicketDetail()
     }
@@ -60,6 +67,31 @@ class DetailViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    //    Pull to refresh
+    fun refresh() {
+        _isRefreshing.value = true
+        repository.getTicketById(ticketId)
+            .onEach { resource ->
+                when (resource) {
+                    is Resource.Loading -> {}
+                    is Resource.Success -> {
+                        _uiState.value = UiState.Success(resource.data)
+                        _isRefreshing.value = false
+                    }
+                    is Resource.Error -> {
+                        // Jangan hapus data yang sedang tampil, cukup kabari via snackbar
+                        _refreshError.value = resource.message ?: "Gagal memuat ulang"
+                        _isRefreshing.value = false
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun clearRefreshError() {
+        _refreshError.value = null
     }
 
     //Retry function untuk tombol "Coba Lagi" di error state.

@@ -20,13 +20,15 @@ class TicketRepoImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val requesterId = identityManager.getRequesterId()
-            val response = api.getTickets(requesterId)
+            val response = api.getTickets()
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    // Sort by createdAt descending (terbaru di atas)
-                    val sorted = body.sortedByDescending { it.createdAt }
-                    emit(Resource.Success(sorted))
+                    // FILTER CLIENT-SIDE: hanya tiket milik device ini
+                    val myTickets = body
+                        .filter { it.requesterId == requesterId }
+                        .sortedByDescending { it.createdAt }
+                    emit(Resource.Success(myTickets))
                 } else {
                     emit(Resource.Error("Response body kosong"))
                 }
@@ -38,7 +40,7 @@ class TicketRepoImpl @Inject constructor(
         } catch (e: HttpException) {
             emit(Resource.Error("HTTP ${e.code()}: ${e.message()}", e))
         } catch (e: Exception) {
-            emit(Resource.Error("Terjadi kesalahan tak terduga", e))
+            emit(Resource.Error("Terjadi kesalahan: ${e.message}", e))
         }
     }
 
@@ -67,13 +69,16 @@ class TicketRepoImpl @Inject constructor(
 
     override suspend fun createTicket(request: TicketRequest): Resource<TicketDto> {
         return try {
-            val response = api.createTicket(request)
+            val finalRequest = request.copy(
+                requesterId = identityManager.getRequesterId()
+            )
+
+            val response = api.createTicket(finalRequest)
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    // Simpan nama & departemen untuk auto-fill berikutnya
-                    identityManager.saveName(request.requesterName)
-                    identityManager.saveDepartment(request.department)
+                    identityManager.saveName(finalRequest.requesterName)
+                    identityManager.saveDepartment(finalRequest.department)
                     Resource.Success(body)
                 } else {
                     Resource.Error("Response body kosong")
@@ -86,7 +91,7 @@ class TicketRepoImpl @Inject constructor(
         } catch (e: HttpException) {
             Resource.Error("HTTP ${e.code()}: ${e.message()}", e)
         } catch (e: Exception) {
-            Resource.Error("Terjadi kesalahan tak terduga", e)
+            Resource.Error("Terjadi kesalahan: ${e.message}", e)
         }
     }
 }

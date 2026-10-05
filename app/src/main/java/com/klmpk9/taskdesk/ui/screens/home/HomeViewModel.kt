@@ -40,7 +40,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun loadTickets() {
-        repository.getTickets()
+        repository.getMyTickets()
             .onEach { resource ->
                 when (resource) {
                     is Resource.Loading -> {
@@ -69,7 +69,7 @@ class HomeViewModel @Inject constructor(
      */
     fun refresh() {
         _isRefreshing.value = true
-        repository.getTickets()
+        repository.getMyTickets()
             .onEach { resource ->
                 when (resource) {
                     is Resource.Loading -> {

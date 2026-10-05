@@ -18,7 +18,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://67048c9654a0c3888a7c8b87.mockapi.io/api/v1/"
+    private const val BASE_URL = "https://6ac27ba23f4ae78f69451462.mockapi.io/api/v1/"
 
     @Provides
     @Singleton
@@ -59,7 +59,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideTicketApi(retrofit: Retrofit): TicketApi {
-        return MockTicketApi()
-//        return retrofit.create(TicketApi::class.java)
+//        return MockTicketApi()
+        return retrofit.create(TicketApi::class.java)
     }
 }

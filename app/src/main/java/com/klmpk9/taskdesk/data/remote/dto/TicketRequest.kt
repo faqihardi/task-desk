@@ -12,5 +12,8 @@ data class TicketRequest(
     @Json(name = "priority") val priority: String,
     @Json(name = "department") val department: String,
     @Json(name = "requesterId") val requesterId: String,
-    @Json(name = "requesterName") val requesterName: String
+    @Json(name = "requesterName") val requesterName: String,
+
+    @Json(name = "status") val status: String = "pending",
+    @Json(name = "createdAt") val createdAt: Long = System.currentTimeMillis()
 )

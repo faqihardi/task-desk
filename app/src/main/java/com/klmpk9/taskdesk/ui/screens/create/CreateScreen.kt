@@ -17,12 +17,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -72,11 +77,15 @@ fun CreateScreen(
     // Focus requesters
     val titleFocusRequester = remember { FocusRequester() }
     val briefFocusRequester = remember { FocusRequester() }
+    val nameFocusRequester = remember { FocusRequester() }
     val driveLinkFocusRequester = remember { FocusRequester() }
 
 
     // State untuk dialog unsaved changes
     var showUnsavedChangesDialog by remember { mutableStateOf(false) }
+
+    var expandedDepartment by remember { mutableStateOf(false) }
+    var expandedPriority by remember { mutableStateOf(false) }
 
     // Deteksi apakah ada perubahan yang belum disimpan
     val hasUnsavedChanges = uiState.title.isNotBlank() ||
@@ -176,6 +185,28 @@ fun CreateScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
+            // === Field: Nama ===
+            OutlinedTextField(
+                value = uiState.requesterName,
+                onValueChange = { viewModel.onNameChange(it) },
+                label = { Text("Nama Kamu") },
+                placeholder = { Text("Masukkan nama lengkap") },
+                supportingText = { Text("Akan ditampilkan di tiket") },
+                singleLine = true,
+                enabled = !uiState.isSubmitting,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(nameFocusRequester)
+                    .semantics { contentDescription = "Nama pengaju tiket" },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { titleFocusRequester.requestFocus() }
+                )
+            )
+
             // === Field: Judul Tiket ===
             OutlinedTextField(
                 value = uiState.title,
@@ -197,6 +228,91 @@ fun CreateScreen(
                     onNext = { briefFocusRequester.requestFocus() }
                 )
             )
+
+            // === Dropdown: Departemen ===
+            ExposedDropdownMenuBox(
+                expanded = expandedDepartment,
+                onExpandedChange = { expandedDepartment = it}
+            ) {
+                OutlinedTextField(
+                    value = uiState.department,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Departemen") },
+                    placeholder = { Text("Pilih departemen") },
+                    supportingText = { Text("Departemen asal pengajuan") },
+                    trailingIcon = {
+//                        Icon(
+//                            imageVector = Icons.Filled.KeyboardArrowDown,
+//                            contentDescription = null
+//                        )
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expandedDepartment
+                        )
+                    },
+                    enabled = !uiState.isSubmitting,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expandedDepartment,
+                    onDismissRequest = { expandedDepartment = false}
+                ) {
+                    uiState.departments.forEach { dept ->
+                        DropdownMenuItem(
+                            text = { Text(dept) },
+                            onClick = {
+                                viewModel.onDepartmentChange(dept)
+                                expandedDepartment = false
+                            }
+                        )
+                    }
+                }
+            }// === Dropdown: Prioritas ===
+            ExposedDropdownMenuBox(
+                expanded = expandedPriority,
+                onExpandedChange = { expandedPriority = it}
+            ) {
+                OutlinedTextField(
+                    value = uiState.priority,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Prioritas") },
+                    supportingText = { Text("Tingkat urgensi tiket") },
+                    trailingIcon = {
+//                        Icon(
+//                            imageVector = Icons.Filled.KeyboardArrowDown,
+//                            contentDescription = null
+//                        )
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expandedPriority
+                        )
+                    },
+                    enabled = !uiState.isSubmitting,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expandedPriority,
+                    onDismissRequest = { expandedPriority = false}
+                ) {
+                    uiState.priorities.forEach { priority ->
+                        DropdownMenuItem(
+                            text = { Text(priority) },
+                            onClick = {
+                                viewModel.onPriorityChange(priority)
+                                expandedPriority = false
+                            }
+                        )
+                    }
+                }
+            }
+
+
 
             // === Field: Brief / Deskripsi ===
             OutlinedTextField(

@@ -10,19 +10,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Manager untuk identitas unik device (tanpa login).
- *
- * Setiap device yang menginstall aplikasi mendapat UUID acak yang
- * disimpan permanen di EncryptedSharedPreferences. UUID ini dipakai
- * sebagai `requesterId` untuk memfilter tiket milik user ini.
+ * Manager untuk identitas unik device
  *
  * Data yang disimpan:
  * - requesterId: UUID unik per device
  * - requesterName: Nama user (auto-fill di form berikutnya)
  * - department: Departemen user (auto-fill di form berikutnya)
- *
  * EncryptedSharedPreferences memastikan data tidak mudah dibaca
- * oleh aplikasi lain atau dari rooted device.
  */
 @Singleton
 class DeviceIdentityManager @Inject constructor(

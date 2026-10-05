@@ -34,6 +34,9 @@ private fun PreviewComponents() {
                 title = "Redesign Landing Page Medkominfo",
                 brief = "Perlu redesign halaman utama dengan fokus pada UX yang lebih intuitif dan mobile-first approach.",
                 status = "in_progress",
+                ticketCode = "TICK-001",
+                requesterName = "Budi Santoso",
+                priority = "high",
                 createdAtTimestamp = System.currentTimeMillis(),
                 onClick = {}
             )
@@ -44,6 +47,9 @@ private fun PreviewComponents() {
                 title = "Buat Poster Event Campus Expo",
                 brief = "Poster untuk event tahunan dengan tema 'Innovation for Future'.",
                 status = "pending",
+                ticketCode = "TICK-002",
+                requesterName = "Siti Aminah",
+                priority = "medium",
                 createdAtTimestamp = System.currentTimeMillis() - 86400000, // 1 hari lalu
                 onClick = {}
             )

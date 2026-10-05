@@ -7,18 +7,11 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
-import retrofit2.http.Query
 
 interface TicketApi {
 
-    /**
-     * Ambil semua tiket milik requesterId ini.
-     * MockAPI.io otomatis filter via query parameter.
-     */
     @GET("tickets")
-    suspend fun getTickets(
-        @Query("requesterId") requesterId: String
-    ): Response<List<TicketDto>>
+    suspend fun getTickets(): Response<List<TicketDto>>
 
     @POST("tickets")
     suspend fun createTicket(

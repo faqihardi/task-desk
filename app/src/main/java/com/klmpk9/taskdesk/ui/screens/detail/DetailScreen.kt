@@ -1,5 +1,6 @@
 package com.klmpk9.taskdesk.ui.screens.detail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,12 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,13 +33,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,7 +67,17 @@ fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val refreshError by viewModel.refreshError.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     val uriHandler = LocalUriHandler.current
+
+    LaunchedEffect (refreshError) {
+        refreshError?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearRefreshError()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -82,13 +101,16 @@ fun DetailScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        Box(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-        ) {
+        )  {
             when (val state = uiState) {
                 is DetailViewModel.UiState.Loading -> {
                     DetailLoadingState()
@@ -101,6 +123,7 @@ fun DetailScreen(
                 }
                 is DetailViewModel.UiState.Success -> {
                     val ticket = state.ticket
+                    val priorityColor = getPriorityColor(ticket.priority)
 
                     Column(
                         modifier = Modifier
@@ -109,6 +132,13 @@ fun DetailScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+
+                        // === Ticket Code (Prominent) ===
+                        Text(
+                            text = ticket.ticketCode,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
 
                         // === Status Badge ===
                         StatusBadge(
@@ -121,6 +151,48 @@ fun DetailScreen(
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
+
+                        // === Section: Informasi Pengaju ===
+                        SectionLabel("Informasi Pengaju")
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        InfoRow(label = "Nama", value = ticket.requesterName)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        InfoRow(label = "Departemen", value = ticket.department)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Prioritas dengan indicator
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Prioritas",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .background(
+                                            color = priorityColor,
+                                            shape = CircleShape
+                                        )
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = ticket.priority,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant,
@@ -195,6 +267,48 @@ fun DetailScreen(
                             }
                         }
 
+                        // === Section: Status Tiket ===
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
+
+                        SectionLabel("Status Tiket")
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Assignee (read-only, diisi IT Helpdesk)
+                        if (!ticket.assignee.isNullOrBlank()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Filled.Person,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "Ditugaskan kepada",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = ticket.assignee,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        } else {
+                            Text(
+                                text = "Belum ditugaskan ke siapapun",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
                         // === Section: Informasi ===
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant,
@@ -215,7 +329,7 @@ fun DetailScreen(
                         // Row: ID Tiket
                         InfoRow(
                             label = "ID Tiket",
-                            value = "#${ticket.id}"
+                            value = "#${ticket.requesterId}"
                         )
 
                         // === Tombol Buka Link Drive (jika ada) ===
@@ -351,4 +465,13 @@ private fun DetailErrorState(
 private fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
+}
+
+private fun getPriorityColor(priority: String): Color {
+    return when (priority.lowercase()) {
+        "low" -> Color(0xFF4CAF50)
+        "medium" -> Color(0xFFFF9800)
+        "high" -> Color(0xFFF44336)
+        else -> Color(0xFF9E9E9E)
+    }
 }

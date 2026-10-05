@@ -201,6 +201,9 @@ private fun TicketList(
                 title = ticket.title,
                 brief = ticket.brief,
                 status = ticket.status,
+                ticketCode = ticket.ticketCode,
+                requesterName = ticket.requesterName,
+                priority = ticket.priority,
                 createdAtTimestamp = ticket.createdAt,
                 onClick = { onTicketClick(ticket.id) }
             )
